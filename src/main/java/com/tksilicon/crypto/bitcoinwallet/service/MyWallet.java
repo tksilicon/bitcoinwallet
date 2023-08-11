@@ -19,6 +19,7 @@ import org.springframework.stereotype.Component;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 
 @Component
@@ -36,43 +37,43 @@ public class MyWallet {
             protected Wallet createWallet() {
                 Wallet wallet;
                 try {
-                /**
-                 *  //1 -> obsolete but still works
-                 *  Wallet wallet = new Wallet(params);
-                 *  The constructor above has been depreciated in favour of {@link Wallet#createBasic(params)}
-                 *
-                 *   We can create deterministic wallets and specify the script type, that is the type of bitcoin we
-                 *   want to create. Read my article to learn more about the addresses
-                 *
-                 *   //2 -> different script types static method
-                 *   Wallet wallet = Wallet.createDeterministic(params, Script.ScriptType.P2PKH);
-                 *   Wallet wallet = Wallet.createDeterministic(params, Script.ScriptType.P2SH);
-                 *   wallet = Wallet.createDeterministic(params, Script.ScriptType.P2WPKH);
-                 *   Wallet wallet = Wallet.createDeterministic(params, Script.ScriptType.P2PK);
-                 *
-                 *
-                 */
+                    /**
+                     *  //1 -> obsolete but still works
+                     *  Wallet wallet = new Wallet(params);
+                     *  The constructor above has been depreciated in favour of {@link Wallet#createBasic(params)}
+                     *
+                     *   We can create deterministic wallets and specify the script type, that is the type of bitcoin we
+                     *   want to create. Read my article to learn more about the addresses
+                     *
+                     *   //2 -> different script types static method
+                     *   Wallet wallet = Wallet.createDeterministic(params, Script.ScriptType.P2PKH);
+                     *   Wallet wallet = Wallet.createDeterministic(params, Script.ScriptType.P2SH);
+                     *   wallet = Wallet.createDeterministic(params, Script.ScriptType.P2WPKH);
+                     *   Wallet wallet = Wallet.createDeterministic(params, Script.ScriptType.P2PK);
+                     *
+                     *
+                     */
 
-                //3 -> SeedCode static method
-                // Here is the pudding. We will create a wallet with a seedPhrase or seedCode
-                // Instead of importing  EcKey. We can also get this EcKey to retrieve the private and public key
-                // The seedPhrase is a human-readable mnemonic that can be used to construct the private key
-                // This is what we find in cryptoCurrency wallet like trust wallet.
-                String seedPhrase = "yard impulse luxury drive today throw farm pepper survey wreck glass federal";
-                long creationTime = 1409478661L;
-                DeterministicSeed seed = new DeterministicSeed(seedPhrase, null, "", creationTime);
-                //Using a seedPhrase will extend the 24 words seedPhrase
-                //DeterministicSeed seed = new DeterministicSeed(seedCode, null, "tango alpha", creationTime);
+                    //3 -> SeedCode static method
+                    // Here is the pudding. We will create a wallet with a seedPhrase or seedCode
+                    // Instead of importing  EcKey. We can also get this EcKey to retrieve the private and public key
+                    // The seedPhrase is a human-readable mnemonic that can be used to construct the private key
+                    // This is what we find in cryptoCurrency wallet like trust wallet.
+                    String seedPhrase = "yard impulse luxury drive today throw farm pepper survey wreck glass federal";
+                    long creationTime = 1409478661L;
+                    DeterministicSeed seed = new DeterministicSeed(seedPhrase, null, "", creationTime);
+                    //Using a seedPhrase will extend the 24 words seedPhrase
+                    //DeterministicSeed seed = new DeterministicSeed(seedCode, null, "tango alpha", creationTime);
 
-                 ChildNumber number = new ChildNumber(1);
-                 //According to unchained, see link in references in article
-                 //P2WPKH is the SegWit variant of P2PKH, which at a basic level, means that
-                 //choosing this address type rather than older
-                 //P2PKH addresses will help you save money on transaction fees when moving your bitcoin around.
-                 //That is why I am using this script type. You can insect any other script type.
-                 wallet = Wallet.fromSeed(params, seed, Script.ScriptType.P2WPKH, ImmutableList.of(number));
+                    ChildNumber number = new ChildNumber(1);
+                    //According to unchained, see link in references in article
+                    //P2WPKH is the SegWit variant of P2PKH, which at a basic level, means that
+                    //choosing this address type rather than older
+                    //P2PKH addresses will help you save money on transaction fees when moving your bitcoin around.
+                    //That is why I am using this script type. You can insect any other script type.
+                    wallet = Wallet.fromSeed(params, seed, Script.ScriptType.P2WPKH, ImmutableList.of(number));
 
-                //wallet = new Wallet(params);
+                    //wallet = new Wallet(params);
                 } catch (UnreadableWalletException e) {
                     throw new RuntimeException(e);
                 }
@@ -81,6 +82,7 @@ public class MyWallet {
                 System.out.println(wallet);
                 return wallet;
             }
+
             //This listener is called when we are done creating the wallet
             @Override
             protected void onSetupCompleted() {
@@ -130,8 +132,6 @@ public class MyWallet {
             for (Transaction tx : txx) {
                 System.out.println(i + "  ________________________");
                 System.out.println("Date and Time: " + tx.getUpdateTime().toString());
-                System.out.println("From Address: " + tx.getOutput(1).getAddressFromP2PKHScript(params));
-                System.out.println("To Address: " + tx.getOutput(0).getAddressFromP2PKHScript(params));
                 Double amountsTx = 0.00;
                 amountsTx = Double.valueOf(String.valueOf(tx.getValueSentToMe(kit.wallet()).toFriendlyString()).replace("BTC", "").trim());
                 if (amountsTx > 0) {
@@ -164,6 +164,10 @@ public class MyWallet {
         return kit.wallet().getBalance().toFriendlyString();
     }
 
+    public List<String> getChangeAddresses() {
+        return kit.wallet().getIssuedReceiveAddresses().stream().map(sc->sc.toString()).collect(Collectors.toList());
+    }
+
     /**
      * This method in the Library will try to send to a Legacy address ( eg Script.ScriptType.P2PKH) if it
      * fails, it will attempt to constructor a SegwitAddress (eg Script.ScriptType.P2WPKH)
@@ -174,7 +178,9 @@ public class MyWallet {
     public void send(String value, String to) {
         try {
             Address toAddress = Address.fromString(params, to);
+            System.out.println("value" + value);
             SendRequest sendRequest = SendRequest.to(toAddress, Coin.parseCoin(value));
+            System.out.println("sendRequest" + sendRequest);
             sendRequest.feePerKb = Coin.parseCoin("0.0000001");
             Wallet.SendResult sendResult = kit.wallet().sendCoins(kit.peerGroup(), sendRequest);
             sendResult.broadcastComplete.addListener(() ->

@@ -1,6 +1,7 @@
 package com.tksilicon.crypto.bitcoinwallet.controllers;
 
 import com.tksilicon.crypto.bitcoinwallet.service.MyWallet;
+import org.bitcoinj.core.Address;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.util.Pair;
 import org.springframework.web.bind.annotation.*;
@@ -34,6 +35,11 @@ public class WalletController {
     public String send(@RequestParam String amount, @RequestParam String address) {
         myWallet.send(amount, address);
         return "Done!";
+    }
+
+    @GetMapping("/myaddresses")
+    public List<String> changedAddresses(){
+       return myWallet.getChangeAddresses();
     }
 
 }
