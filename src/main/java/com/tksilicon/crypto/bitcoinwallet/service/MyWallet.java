@@ -36,43 +36,47 @@ public class MyWallet {
             protected Wallet createWallet() {
                 Wallet wallet;
                 try {
-                    /**
-                     *  //1 -> obsolete but still works
-                     *  Wallet wallet = new Wallet(params);
-                     *  The constructor above has been depreciated in favour of {@link Wallet#createBasic(params)}
-                     *
-                     *   We can create deterministic wallets and specify the script type, that is the type of bitcoin we
-                     *   want to create. Read my article to learn more about the addresses
-                     *
-                     *   //2 -> different script types static method
-                     *   Wallet wallet = Wallet.createDeterministic(params, Script.ScriptType.P2PKH);
-                     *   Wallet wallet = Wallet.createDeterministic(params, Script.ScriptType.P2SH);
-                     *   wallet = Wallet.createDeterministic(params, Script.ScriptType.P2WPKH);
-                     *   Wallet wallet = Wallet.createDeterministic(params, Script.ScriptType.P2PK);
-                     *
-                     *
-                     */
+                /**
+                 *  //1 -> obsolete but still works
+                 *  Wallet wallet = new Wallet(params);
+                 *  The constructor above has been depreciated in favour of {@link Wallet#createBasic(params)}
+                 *
+                 *   We can create deterministic wallets and specify the script type, that is the type of bitcoin we
+                 *   want to create. Read my article to learn more about the addresses
+                 *
+                 *   //2 -> different script types static method
+                 *   Wallet wallet = Wallet.createDeterministic(params, Script.ScriptType.P2PKH);
+                 *   Wallet wallet = Wallet.createDeterministic(params, Script.ScriptType.P2SH);
+                 *   wallet = Wallet.createDeterministic(params, Script.ScriptType.P2WPKH);
+                 *   Wallet wallet = Wallet.createDeterministic(params, Script.ScriptType.P2PK);
+                 *
+                 *
+                 */
 
-                    //3 -> SeedCode static method
-                    // Here is the pudding. We will create a wallet with a seedPhrase or seedCode
-                    // Instead of importing  EcKey. We can also get this EcKey to retrieve the private and public key
-                    // The seedPhrase is a human-readable mnemonic that can be used to construct the private key
-                    // This is what we find in cryptoCurreny wallet like trust wallet.
-                    String seedCode = "yard impulse luxury drive today throw farm pepper survey wreck glass federal";
-                    long creationTime = 1409478661L;
-                    DeterministicSeed seed = new DeterministicSeed(seedCode, null, "testing phrase", creationTime);
+                //3 -> SeedCode static method
+                // Here is the pudding. We will create a wallet with a seedPhrase or seedCode
+                // Instead of importing  EcKey. We can also get this EcKey to retrieve the private and public key
+                // The seedPhrase is a human-readable mnemonic that can be used to construct the private key
+                // This is what we find in cryptoCurrency wallet like trust wallet.
+                String seedPhrase = "yard impulse luxury drive today throw farm pepper survey wreck glass federal";
+                long creationTime = 1409478661L;
+                DeterministicSeed seed = new DeterministicSeed(seedPhrase, null, "", creationTime);
+                //Using a seedPhrase will extend the 24 words seedPhrase
+                //DeterministicSeed seed = new DeterministicSeed(seedCode, null, "tango alpha", creationTime);
 
-                    ChildNumber number = new ChildNumber(1);
-                    //According to unchained, see link in references in article
-                    //P2WPKH is the SegWit variant of P2PKH, which at a basic level, means that
-                    //choosing this address type rather than older
-                    //P2PKH addresses will help you save money on transaction fees when moving your bitcoin around.
-                    //That is why I am using this script type. You can insect any other script type.
-                    wallet = Wallet.fromSeed(params, seed, Script.ScriptType.P2WPKH, ImmutableList.of(number));
+                 ChildNumber number = new ChildNumber(1);
+                 //According to unchained, see link in references in article
+                 //P2WPKH is the SegWit variant of P2PKH, which at a basic level, means that
+                 //choosing this address type rather than older
+                 //P2PKH addresses will help you save money on transaction fees when moving your bitcoin around.
+                 //That is why I am using this script type. You can insect any other script type.
+                 wallet = Wallet.fromSeed(params, seed, Script.ScriptType.P2WPKH, ImmutableList.of(number));
 
+                //wallet = new Wallet(params);
                 } catch (UnreadableWalletException e) {
                     throw new RuntimeException(e);
                 }
+
 
                 System.out.println(wallet);
                 return wallet;
@@ -87,6 +91,7 @@ public class MyWallet {
             }
         };
         System.out.println("start syncing...");
+
         kit.startAsync();
         kit.awaitRunning();
         //If we start or restart, we see our balance
@@ -128,13 +133,13 @@ public class MyWallet {
                 System.out.println("From Address: " + tx.getOutput(1).getAddressFromP2PKHScript(params));
                 System.out.println("To Address: " + tx.getOutput(0).getAddressFromP2PKHScript(params));
                 Double amountsTx = 0.00;
-                amountsTx = Double.valueOf(tx.getValueSentToMe(kit.wallet()).toFriendlyString());
+                amountsTx = Double.valueOf(String.valueOf(tx.getValueSentToMe(kit.wallet()).toFriendlyString()).replace("BTC", "").trim());
                 if (amountsTx > 0) {
                     System.out.println("Amount Sent to me: " + tx.getValueSentToMe(kit.wallet()).toFriendlyString());
                     amounts.add(Pair.of("Received:", tx.getValueSentToMe(kit.wallet()).toFriendlyString()));
                 }
 
-                amountsTx = Double.valueOf(tx.getValueSentFromMe(kit.wallet()).toFriendlyString());
+                amountsTx = Double.valueOf(String.valueOf(tx.getValueSentFromMe(kit.wallet()).toFriendlyString()).replace("BTC", "").trim());
 
                 if (amountsTx > 0) {
                     System.out.println("Amount Sent from me: " + tx.getValueSentFromMe(kit.wallet()).toFriendlyString());
