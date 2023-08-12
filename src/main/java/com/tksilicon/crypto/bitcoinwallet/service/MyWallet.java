@@ -60,7 +60,9 @@ public class MyWallet {
                     // The seedPhrase is a human-readable mnemonic that can be used to construct the private key
                     // This is what we find in cryptoCurrency wallet like trust wallet.
                     String seedPhrase = "yard impulse luxury drive today throw farm pepper survey wreck glass federal";
-                    long creationTime = 1409478661L;
+                    //long creationTime = 1409478661L; earliest epoch
+                    //1691839946911 - Sat Aug 12 12:32:56 BST 2023
+                    long creationTime = 1691839946911L;
                     DeterministicSeed seed = new DeterministicSeed(seedPhrase, null, "", creationTime);
                     //Using a seedPhrase will extend the 24 words seedPhrase
                     //DeterministicSeed seed = new DeterministicSeed(seedCode, null, "tango alpha", creationTime);
