@@ -7,14 +7,6 @@ import java.util.List;
 
 public class SeedPhraseGenerator {
 
-    static List<String> wordList;
-
-    static String path = System.getProperty("user.dir") + "/english.txt";
-
-    public static void main(String... args){
-        System.out.println(generateSeedPhrase());
-    }
-
     public static String generateSeedPhrase() {
         byte[] initialEntropy = new byte[16];
         SecureRandom secureRandom = new SecureRandom();
@@ -23,4 +15,4 @@ public class SeedPhraseGenerator {
     }
 }
 
-}
+
